@@ -6,7 +6,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 	var wallNode:SKNode!
 	var bird:SKSpriteNode!
 	var itemNode:SKNode!
-	
+	var lifeGaugeNode:SKNode!
 	var groundTexture:SKTexture!
 	
 	// 衝突判定カテゴリー
@@ -20,14 +20,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 	var score = 0
 	var scoreLabelNode:SKLabelNode!
 	var bestScoreLabelNode:SKLabelNode!
-	var itemScore = 0
-	var itemScoreLabelNode:SKLabelNode!
 	let userDefaults:UserDefaults = UserDefaults.standard
 	
-	let sound = SKAction.playSoundFileNamed("rinSound.mp3" , waitForCompletion: false)
+	// タイマー
+	var lifeTimer:Timer!
 	
+	// 難易度設定
 	let movingSpeed: Double = 4.0
-	
+	var remainingLife: Int = 4
+	let timerInterval: Double = 2
+
 	
 	// SKView上にシーンが表示されたときに呼ばれるメソッド
 	override func didMove(to view: SKView) {
@@ -51,17 +53,70 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		itemNode = SKNode()
 		scrollNode.addChild(itemNode)
 		
+		// ライフゲージのノード
+		lifeGaugeNode = SKNode()
+		addChild(lifeGaugeNode)
+		
 		// 各種スプライトを生成する処理をメソッドに分割
 		setupGround()
 		setupCloud()
 		setupWall()
 		setupBird()
 		setupItem()
-		
-		
-		
-		
 		setupScoreLabel()
+		setLifeGaugeBackround()
+		updateLifeGauge()
+		
+		lifeTimer = Timer.scheduledTimer(timeInterval: timerInterval, target: self, selector: #selector(UIMenuController.update), userInfo: nil, repeats: true)
+	}
+	
+	
+	func updateLifeGauge() {
+		print(remainingLife)
+		
+		self.lifeGaugeNode.removeAllChildren()
+		
+		let hungerGauge = SKNode()
+		hungerGauge.position = CGPoint(x: 0, y: 0)
+		hungerGauge.zPosition = 100
+		
+		showGauges(fileName: "item", numberOfGauges: remainingLife, SKNode: hungerGauge)
+		
+		self.lifeGaugeNode.addChild(hungerGauge)
+	}
+	
+	func setLifeGaugeBackround() {
+		showGauges(fileName: "item_b", numberOfGauges: 4, SKNode: self)
+	}
+	
+	func showGauges(fileName: String, numberOfGauges: Int, SKNode: SKNode) {
+		let gaugeTexture = SKTexture(imageNamed: fileName)
+		gaugeTexture.filteringMode = SKTextureFilteringMode.linear
+		var gauges: Dictionary<Int, SKSpriteNode> = [:]
+		let x_left = self.frame.size.width / 2 - gaugeTexture.size().width * 2
+		for i in 0...numberOfGauges {
+			gauges[i] = SKSpriteNode(texture: gaugeTexture)
+			gauges[i]?.position = CGPoint(x: x_left + gaugeTexture.size().width * CGFloat(i), y: 60)
+			SKNode.addChild(gauges[i]!)
+		}
+	}
+	
+	
+	func update() {
+		remainingLife -= 1
+		checkHunger(hunger: remainingLife)
+	}
+	
+	func checkHunger(hunger: Int) {
+		if remainingLife >= 0 && remainingLife <= 4 {
+			updateLifeGauge()
+		} else if remainingLife >= 5 {
+			remainingLife = 4
+			updateLifeGauge()
+		} else {
+			lifeGaugeNode.removeAllChildren()
+			gameOver()
+		}
 	}
 	
 	func setupItem() {
@@ -240,7 +295,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 			let under_wall_y = CGFloat(under_wall_lowest_y + random_y)
 			
 			// キャラが通り抜ける隙間の長さ
-			let slit_length = self.frame.size.height / 6
+			let slit_length = self.frame.size.height / 5
 			
 			// 下側の壁を作成
 			let under = SKSpriteNode(texture: wallTexture)
@@ -360,36 +415,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 				userDefaults.synchronize()
 			}
 		} else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
-			print("ScoreUp")
-			itemScore += 1
-			itemScoreLabelNode.text = "ItemScore:\(itemScore)"
-			
+			let sound = SKAction.playSoundFileNamed("rinSound.mp3" , waitForCompletion: false)
 			self.run(sound)
+			remainingLife += 1
+			checkHunger(hunger: remainingLife)
 			contact.bodyA.node?.removeFromParent()
-			
-			
+
 		} else {
 			// 壁か地面と衝突した
-			print("GameOver")
-			
-			// スクロールを停止させる
-			scrollNode.speed = 0
-			
-			bird.physicsBody?.collisionBitMask = groundCategory
-			
-			let roll = SKAction.rotate(byAngle: CGFloat(Double.pi) * CGFloat(bird.position.y) * 0.01, duration:1)
-			bird.run(roll, completion:{
-				self.bird.speed = 0
-			})
+			gameOver()
 		}
+	}
+	
+	func gameOver() {
+		print("GameOver")
+		
+		// スクロールを停止させる
+		scrollNode.speed = 0
+		
+		bird.physicsBody?.collisionBitMask = groundCategory
+		
+		let roll = SKAction.rotate(byAngle: CGFloat(Double.pi) * CGFloat(bird.position.y) * 0.01, duration:1)
+		bird.run(roll, completion:{
+			self.bird.speed = 0
+		})
+		lifeTimer.invalidate()
 	}
 	
 	func restart() {
 		score = 0
 		scoreLabelNode.text = String("Score:\(score)")
-		
-		itemScore = 0
-		itemScoreLabelNode.text = "ItemScore:\(itemScore)"
 		
 		bird.position = CGPoint(x: self.frame.size.width * 0.2, y:self.frame.size.height * 0.7)
 		bird.physicsBody?.velocity = CGVector.zero
@@ -401,6 +456,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		
 		bird.speed = 1
 		scrollNode.speed = 1
+		
+		remainingLife = 4
+		updateLifeGauge()
+		lifeTimer = Timer.scheduledTimer(timeInterval: timerInterval, target: self, selector: #selector(UIMenuController.update), userInfo: nil, repeats: true)
 	}
 	
 	
@@ -413,15 +472,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		scoreLabelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
 		scoreLabelNode.text = "Score:\(score)"
 		self.addChild(scoreLabelNode)
-		
-		itemScore = 0
-		itemScoreLabelNode = SKLabelNode()
-		itemScoreLabelNode.fontColor = UIColor.black
-		itemScoreLabelNode.position = CGPoint(x: 30 + scoreLabelNode.frame.width, y: self.frame.size.height - 30)
-		itemScoreLabelNode.zPosition = 100 // 一番手前に表示する
-		itemScoreLabelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
-		itemScoreLabelNode.text = "ItemScore:\(itemScore)"
-		self.addChild(itemScoreLabelNode)
 		
 		bestScoreLabelNode = SKLabelNode()
 		bestScoreLabelNode.fontColor = UIColor.black
