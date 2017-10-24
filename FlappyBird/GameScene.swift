@@ -125,7 +125,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		let movingDistance = CGFloat(self.frame.size.width + wallTexture.size().width)
 		
 		// 画面外まで移動するアクションを作成
-		let moveWall = SKAction.moveBy(x: -movingDistance, y: 0, duration: 4.0)
+		let moveWall = SKAction.moveBy(x: -movingDistance, y: 0, duration:4.0)
 		
 		// 自身を取り除くアクションを作成
 		let removeWall = SKAction.removeFromParent()
@@ -138,20 +138,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 			// 壁関連のノードを乗せるノードを作成
 			let wall = SKNode()
 			wall.position = CGPoint(x: self.frame.size.width + wallTexture.size().width / 2, y: 0.0)
-			wall.zPosition = -50.0
+			wall.zPosition = -50.0 // 雲より手前、地面より奥
 			
 			// 画面のY軸の中央値
 			let center_y = self.frame.size.height / 2
-			
 			// 壁のY座標を上下ランダムにさせるときの最大値
 			let random_y_range = self.frame.size.height / 4
-			
 			// 下の壁のY軸の下限
-			let under_wall_lowest_y = UInt32(center_y - wallTexture.size().height / 2 - random_y_range / 2)
-			
+			let under_wall_lowest_y = UInt32( center_y - wallTexture.size().height / 2 -  random_y_range / 2)
 			// 1〜random_y_rangeまでのランダムな整数を生成
 			let random_y = arc4random_uniform( UInt32(random_y_range) )
-			
 			// Y軸の下限にランダムな値を足して、下の壁のY座標を決定
 			let under_wall_y = CGFloat(under_wall_lowest_y + random_y)
 			
@@ -165,25 +161,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 			
 			// スプライトに物理演算を設定する
 			under.physicsBody = SKPhysicsBody(rectangleOf: wallTexture.size())
-			under.physicsBody?.categoryBitMask = self.wallCategory
+			under.physicsBody?.categoryBitMask = self.wallCategory    // ←追加
 			
 			// 衝突の時に動かないように設定する
 			under.physicsBody?.isDynamic = false
 			
 			// 上側の壁を作成
 			let upper = SKSpriteNode(texture: wallTexture)
-			under.position = CGPoint(x: 0.0, y: under_wall_y + wallTexture.size().height + slit_length)
+			upper.position = CGPoint(x: 0.0, y: under_wall_y + wallTexture.size().height + slit_length)
 			
 			// スプライトに物理演算を設定する
 			upper.physicsBody = SKPhysicsBody(rectangleOf: wallTexture.size())
-			upper.physicsBody?.categoryBitMask = self.wallCategory
+			upper.physicsBody?.categoryBitMask = self.wallCategory    // ←追加
 			
 			// 衝突の時に動かないように設定する
 			upper.physicsBody?.isDynamic = false
 			
 			wall.addChild(upper)
 			
-			// スコアアップ用のノード
+			// スコアアップ用のノード --- ここから ---
 			let scoreNode = SKNode()
 			scoreNode.position = CGPoint(x: upper.size.width + self.bird.size.width / 2, y: self.frame.height / 2.0)
 			scoreNode.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upper.size.width, height: self.frame.size.height))
@@ -192,6 +188,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 			scoreNode.physicsBody?.contactTestBitMask = self.birdCategory
 			
 			wall.addChild(scoreNode)
+			// --- ここまで追加 ---
 			
 			wall.run(wallAnimation)
 			
