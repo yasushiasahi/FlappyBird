@@ -14,7 +14,7 @@
 		417DAE8E1F9D9FC70023A1A0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 417DAE8C1F9D9FC70023A1A0 /* LaunchScreen.storyboard */; };
 		417DAE971F9DA09A0023A1A0 /* SpriteKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 417DAE961F9DA09A0023A1A0 /* SpriteKit.framework */; };
 		417DAE991F9DA77F0023A1A0 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417DAE981F9DA77F0023A1A0 /* GameScene.swift */; };
-		417DAEA11FA00CB80023A1A0 /* rin_mixdown.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 417DAEA01FA00CB80023A1A0 /* rin_mixdown.mp3 */; };
+		41B059201FA0B338003759B8 /* rin_mixdown.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 41B0591F1FA0B338003759B8 /* rin_mixdown.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 		417DAE8F1F9D9FC70023A1A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		417DAE961F9DA09A0023A1A0 /* SpriteKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SpriteKit.framework; path = System/Library/Frameworks/SpriteKit.framework; sourceTree = SDKROOT; };
 		417DAE981F9DA77F0023A1A0 /* GameScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
-		417DAEA01FA00CB80023A1A0 /* rin_mixdown.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = rin_mixdown.mp3; path = ../../../../Desktop/rin_mixdown.mp3; sourceTree = "<group>"; };
+		41B0591F1FA0B338003759B8 /* rin_mixdown.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = rin_mixdown.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,13 +63,13 @@
 			isa = PBXGroup;
 			children = (
 				417DAE831F9D9FC70023A1A0 /* AppDelegate.swift */,
+				41B0591F1FA0B338003759B8 /* rin_mixdown.mp3 */,
 				417DAE851F9D9FC70023A1A0 /* ViewController.swift */,
 				417DAE871F9D9FC70023A1A0 /* Main.storyboard */,
 				417DAE8A1F9D9FC70023A1A0 /* Assets.xcassets */,
 				417DAE8C1F9D9FC70023A1A0 /* LaunchScreen.storyboard */,
 				417DAE8F1F9D9FC70023A1A0 /* Info.plist */,
 				417DAE981F9DA77F0023A1A0 /* GameScene.swift */,
-				417DAEA01FA00CB80023A1A0 /* rin_mixdown.mp3 */,
 			);
 			path = FlappyBird;
 			sourceTree = "<group>";
@@ -143,8 +143,8 @@
 			files = (
 				417DAE8E1F9D9FC70023A1A0 /* LaunchScreen.storyboard in Resources */,
 				417DAE8B1F9D9FC70023A1A0 /* Assets.xcassets in Resources */,
-				417DAEA11FA00CB80023A1A0 /* rin_mixdown.mp3 in Resources */,
 				417DAE891F9D9FC70023A1A0 /* Main.storyboard in Resources */,
+				41B059201FA0B338003759B8 /* rin_mixdown.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
