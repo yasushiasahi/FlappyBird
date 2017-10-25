@@ -22,14 +22,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 	var bestScoreLabelNode:SKLabelNode!
 	let userDefaults:UserDefaults = UserDefaults.standard
 	
-	// タイマー
-	var lifeTimer:Timer!
-	
 	// 難易度設定
 	let movingSpeed: Double = 4.0
 	var remainingLife: Int = 4
+	
+	// タイマー
+	var lifeTimer:Timer!
 	let timerInterval: Double = 2
-
+	
 	
 	// SKView上にシーンが表示されたときに呼ばれるメソッド
 	override func didMove(to view: SKView) {
@@ -71,43 +71,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 	}
 	
 	
-	func updateLifeGauge() {
-		print(remainingLife)
-		
-		self.lifeGaugeNode.removeAllChildren()
-		
-		let hungerGauge = SKNode()
-		hungerGauge.position = CGPoint(x: 0, y: 0)
-		hungerGauge.zPosition = 100
-		
-		showGauges(fileName: "item", numberOfGauges: remainingLife, SKNode: hungerGauge)
-		
-		self.lifeGaugeNode.addChild(hungerGauge)
-	}
-	
-	func setLifeGaugeBackround() {
-		showGauges(fileName: "item_b", numberOfGauges: 4, SKNode: self)
-	}
-	
-	func showGauges(fileName: String, numberOfGauges: Int, SKNode: SKNode) {
-		let gaugeTexture = SKTexture(imageNamed: fileName)
-		gaugeTexture.filteringMode = SKTextureFilteringMode.linear
-		var gauges: Dictionary<Int, SKSpriteNode> = [:]
-		let x_left = self.frame.size.width / 2 - gaugeTexture.size().width * 2
-		for i in 0...numberOfGauges {
-			gauges[i] = SKSpriteNode(texture: gaugeTexture)
-			gauges[i]?.position = CGPoint(x: x_left + gaugeTexture.size().width * CGFloat(i), y: 60)
-			SKNode.addChild(gauges[i]!)
-		}
-	}
-	
-	
 	func update() {
 		remainingLife -= 1
-		checkHunger(hunger: remainingLife)
+		checkRemainingLife()
 	}
 	
-	func checkHunger(hunger: Int) {
+	
+	func checkRemainingLife() {
 		if remainingLife >= 0 && remainingLife <= 4 {
 			updateLifeGauge()
 		} else if remainingLife >= 5 {
@@ -119,74 +89,89 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		}
 	}
 	
-	func setupItem() {
-		// 壁の画像を読み込む
-		let itemTexture = SKTexture(imageNamed: "item")
-		itemTexture.filteringMode = SKTextureFilteringMode.linear
+	
+	override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+		if scrollNode.speed > 0 {
+			// 鳥の速度をゼロにする
+			bird.physicsBody?.velocity = CGVector.zero
+			
+			// 鳥に縦方向の力を与える
+			bird.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 15))
+		} else if bird.speed == 0 { // --- ここから ---
+			restart()
+		}
+	}
+	
+	
+	// SKPhysicsContactDelegateのメソッド。衝突したときに呼ばれる
+	func didBegin(_ contact: SKPhysicsContact) {
+		// ゲームオーバーのときは何もしない
+		if scrollNode.speed <= 0 {
+			return
+		}
 		
-		// 移動する距離を計算
-		let movingDistance = CGFloat(self.frame.size.width + itemTexture.size().width)
+		if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
+			// スコア用の物体と衝突した
+			print("ScoreUp")
+			score += 1
+			scoreLabelNode.text = "Score:\(score)"
+			
+			// ベストスコア更新か確認する
+			var bestScore = userDefaults.integer(forKey: "BEST")
+			if score > bestScore {
+				bestScore = score
+				bestScoreLabelNode.text = "Best Score:\(bestScore)"
+				userDefaults.set(bestScore, forKey: "BEST")
+				userDefaults.synchronize()
+			}
+		} else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
+			let sound = SKAction.playSoundFileNamed("rin_mixdown.mp3" , waitForCompletion: false)
+			self.run(sound)
+			remainingLife += 1
+			checkRemainingLife()
+			contact.bodyA.node?.removeFromParent()
+		} else {
+			// 壁か地面と衝突した
+			gameOver()
+		}
+	}
+	
+	
+	func gameOver() {
+		print("GameOver")
 		
-		// 画面外まで移動するアクションを作成
-		let moveItem = SKAction.moveBy(x: -movingDistance * 1.25, y: 0, duration:movingSpeed * 1.25)
+		// スクロールを停止させる
+		scrollNode.speed = 0
 		
-		// 自身を取り除くアクションを作成
-		let removeItem = SKAction.removeFromParent()
+		bird.physicsBody?.collisionBitMask = groundCategory
 		
-		// 2つのアニメーションを順に実行するアクションを作成
-		let itemAnimation = SKAction.sequence([moveItem, removeItem])
-		
-		// 壁を生成するアクションを作成
-		let createItemAnimation = SKAction.run({
-			// 壁関連のノードを乗せるノードを作成
-			let item = SKNode()
-			item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0.0)
-			item.zPosition = -50.0 // 雲より手前、地面より奥
-			
-			let xP = CGFloat( movingDistance / 4  )
-			
-			
-			// 壁のY座標を上下ランダムにさせるときの最大値
-			let random_y_range = self.frame.size.height - self.groundTexture.size().height - itemTexture.size().height
-			
-			// 下の壁のY軸の下限
-			let under_wall_lowest_y = UInt32( self.groundTexture.size().height + itemTexture.size().height / 2)
-			
-			// 1〜random_y_rangeまでのランダムな整数を生成
-			let random_y = arc4random_uniform( UInt32(random_y_range) )
-			
-			// Y軸の下限にランダムな値を足して、下の壁のY座標を決定
-			let under_wall_y = CGFloat(under_wall_lowest_y + random_y)
-			
-			// 下側の壁を作成
-			let under = SKSpriteNode(texture: itemTexture)
-			under.position = CGPoint(x: xP, y: under_wall_y)
-			item.addChild(under)
-			
-			// スプライトに物理演算を設定する
-			under.physicsBody = SKPhysicsBody(rectangleOf: itemTexture.size())
-			under.physicsBody?.categoryBitMask = self.itemCategory    // ←追加
-			
-			// 衝突の時に動かないように設定する
-			under.physicsBody?.isDynamic = false
-			
-			under.physicsBody?.contactTestBitMask = self.birdCategory
-			
-			item.run(itemAnimation)
-			
-			self.itemNode.addChild(item)
+		let roll = SKAction.rotate(byAngle: CGFloat(Double.pi) * CGFloat(bird.position.y) * 0.01, duration:1)
+		bird.run(roll, completion:{
+			self.bird.speed = 0
 		})
 		
+		lifeTimer.invalidate()
+	}
+	
+	
+	func restart() {
+		score = 0
+		scoreLabelNode.text = String("Score:\(score)")
 		
-		// 次の壁作成までの待ち時間のアクションを作成
-		let waitAnimation = SKAction.wait(forDuration: 2)
+		bird.position = CGPoint(x: self.frame.size.width * 0.2, y:self.frame.size.height * 0.7)
+		bird.physicsBody?.velocity = CGVector.zero
+		bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
+		bird.zRotation = 0.0
 		
-		// 壁を作成->待ち時間->壁を作成を無限に繰り替えるアクションを作成
-		let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createItemAnimation, waitAnimation]))
-
-		itemNode.run(repeatForeverAnimation)
+		wallNode.removeAllChildren()
+		itemNode.removeAllChildren()
 		
-
+		bird.speed = 1
+		scrollNode.speed = 1
+		
+		remainingLife = 4
+		updateLifeGauge()
+		lifeTimer = Timer.scheduledTimer(timeInterval: timerInterval, target: self, selector: #selector(UIMenuController.update), userInfo: nil, repeats: true)
 	}
 	
 	
@@ -268,7 +253,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		let movingDistance = CGFloat(self.frame.size.width + wallTexture.size().width)
 		
 		// 画面外まで移動するアクションを作成
-		let moveWall = SKAction.moveBy(x: -movingDistance, y: 0, duration:movingSpeed)
+		let moveWall = SKAction.moveBy(x: -movingDistance, y: 0, duration: movingSpeed)
 		
 		// 自身を取り除くアクションを作成
 		let removeWall = SKAction.removeFromParent()
@@ -339,7 +324,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		})
 		
 		// 次の壁作成までの待ち時間のアクションを作成
-		let waitAnimation = SKAction.wait(forDuration: 2)
+		let waitAnimation = SKAction.wait(forDuration: movingSpeed / 2)
 		
 		// 壁を作成->待ち時間->壁を作成を無限に繰り替えるアクションを作成
 		let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createWallAnimation, waitAnimation]))
@@ -380,86 +365,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		// スプライトを追加する
 		addChild(bird)
 	}
-
-	override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-		if scrollNode.speed > 0 {
-			// 鳥の速度をゼロにする
-			bird.physicsBody?.velocity = CGVector.zero
-			
-			// 鳥に縦方向の力を与える
-			bird.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 15))
-		} else if bird.speed == 0 { // --- ここから ---
-			restart()
-		}
-	}
 	
-	// SKPhysicsContactDelegateのメソッド。衝突したときに呼ばれる
-	func didBegin(_ contact: SKPhysicsContact) {
-		// ゲームオーバーのときは何もしない
-		if scrollNode.speed <= 0 {
-			return
-		}
-		
-		if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
-			// スコア用の物体と衝突した
-			print("ScoreUp")
-			score += 1
-			scoreLabelNode.text = "Score:\(score)"
-			
-			// ベストスコア更新か確認する
-			var bestScore = userDefaults.integer(forKey: "BEST")
-			if score > bestScore {
-				bestScore = score
-				bestScoreLabelNode.text = "Best Score:\(bestScore)"
-				userDefaults.set(bestScore, forKey: "BEST")
-				userDefaults.synchronize()
-			}
-		} else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
-			let sound = SKAction.playSoundFileNamed("rinSound.mp3" , waitForCompletion: false)
-			self.run(sound)
-			remainingLife += 1
-			checkHunger(hunger: remainingLife)
-			contact.bodyA.node?.removeFromParent()
-
-		} else {
-			// 壁か地面と衝突した
-			gameOver()
-		}
-	}
 	
-	func gameOver() {
-		print("GameOver")
+	func setupItem() {
+		let itemTexture = SKTexture(imageNamed: "item")
+		itemTexture.filteringMode = SKTextureFilteringMode.linear
 		
-		// スクロールを停止させる
-		scrollNode.speed = 0
+		let movingDistance = CGFloat(self.frame.size.width + itemTexture.size().width)
+		let moveItem = SKAction.moveBy(x: -movingDistance * 1.25, y: 0, duration:movingSpeed * 1.25)
+		let removeItem = SKAction.removeFromParent()
+		let itemAnimation = SKAction.sequence([moveItem, removeItem])
 		
-		bird.physicsBody?.collisionBitMask = groundCategory
-		
-		let roll = SKAction.rotate(byAngle: CGFloat(Double.pi) * CGFloat(bird.position.y) * 0.01, duration:1)
-		bird.run(roll, completion:{
-			self.bird.speed = 0
+		let createItemAnimation = SKAction.run({
+			let item = SKNode()
+			item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0.0)
+			item.zPosition = -50.0
+			
+			let final_x = CGFloat( movingDistance / 4  )
+			
+			let random_y_range = self.frame.size.height - self.groundTexture.size().height - itemTexture.size().height
+			let lowest_y = UInt32( self.groundTexture.size().height + itemTexture.size().height / 2)
+			let random_y = arc4random_uniform( UInt32(random_y_range) )
+			let final_y = CGFloat(lowest_y + random_y)
+			
+			let childItem = SKSpriteNode(texture: itemTexture)
+			childItem.position = CGPoint(x: final_x, y: final_y)
+			item.addChild(childItem)
+			
+			childItem.physicsBody = SKPhysicsBody(rectangleOf: itemTexture.size())
+			childItem.physicsBody?.categoryBitMask = self.itemCategory
+			childItem.physicsBody?.isDynamic = false
+			childItem.physicsBody?.contactTestBitMask = self.birdCategory
+			
+			item.run(itemAnimation)
+			self.itemNode.addChild(item)
 		})
-		lifeTimer.invalidate()
-	}
-	
-	func restart() {
-		score = 0
-		scoreLabelNode.text = String("Score:\(score)")
 		
-		bird.position = CGPoint(x: self.frame.size.width * 0.2, y:self.frame.size.height * 0.7)
-		bird.physicsBody?.velocity = CGVector.zero
-		bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
-		bird.zRotation = 0.0
+		let waitAnimation = SKAction.wait(forDuration: movingSpeed / 2)
 		
-		wallNode.removeAllChildren()
-		itemNode.removeAllChildren()
+		let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createItemAnimation, waitAnimation]))
 		
-		bird.speed = 1
-		scrollNode.speed = 1
-		
-		remainingLife = 4
-		updateLifeGauge()
-		lifeTimer = Timer.scheduledTimer(timeInterval: timerInterval, target: self, selector: #selector(UIMenuController.update), userInfo: nil, repeats: true)
+		itemNode.run(repeatForeverAnimation)
 	}
 	
 	
@@ -482,6 +428,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 		let bestScore = userDefaults.integer(forKey: "BEST")
 		bestScoreLabelNode.text = "Best Score:\(bestScore)"
 		self.addChild(bestScoreLabelNode)
+	}
+	
+	
+	func setLifeGaugeBackround() {
+		showGauges(fileName: "life_gauge_background", numberOfGauges: 4, SKNode: self)
+	}
+	
+	
+	func updateLifeGauge() {
+		print(remainingLife)
+		
+		self.lifeGaugeNode.removeAllChildren()
+		
+		let lifeGauge = SKNode()
+		lifeGauge.position = CGPoint(x: 0, y: 0)
+		lifeGauge.zPosition = 100
+		
+		showGauges(fileName: "life_gauge", numberOfGauges: remainingLife, SKNode: lifeGauge)
+		
+		self.lifeGaugeNode.addChild(lifeGauge)
+	}
+	
+	
+	func showGauges(fileName: String, numberOfGauges: Int, SKNode: SKNode) {
+		let gaugeTexture = SKTexture(imageNamed: fileName)
+		gaugeTexture.filteringMode = SKTextureFilteringMode.linear
+		var gauges: Dictionary<Int, SKSpriteNode> = [:]
+		let x_leftEnd = self.frame.size.width / 2 - gaugeTexture.size().width * 2
+		for i in 0...numberOfGauges {
+			gauges[i] = SKSpriteNode(texture: gaugeTexture)
+			gauges[i]?.position = CGPoint(x: x_leftEnd + gaugeTexture.size().width * CGFloat(i), y: 40)
+			SKNode.addChild(gauges[i]!)
+		}
 	}
 	
 }
