@@ -7,17 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		417A8CDD1FA1CEED006B640A /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417A8CDC1FA1CEED006B640A /* GameScene.swift */; };
 		417DAE841F9D9FC70023A1A0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417DAE831F9D9FC70023A1A0 /* AppDelegate.swift */; };
 		417DAE861F9D9FC70023A1A0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417DAE851F9D9FC70023A1A0 /* ViewController.swift */; };
 		417DAE891F9D9FC70023A1A0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 417DAE871F9D9FC70023A1A0 /* Main.storyboard */; };
 		417DAE8B1F9D9FC70023A1A0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 417DAE8A1F9D9FC70023A1A0 /* Assets.xcassets */; };
 		417DAE8E1F9D9FC70023A1A0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 417DAE8C1F9D9FC70023A1A0 /* LaunchScreen.storyboard */; };
 		417DAE971F9DA09A0023A1A0 /* SpriteKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 417DAE961F9DA09A0023A1A0 /* SpriteKit.framework */; };
-		417DAE991F9DA77F0023A1A0 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417DAE981F9DA77F0023A1A0 /* GameScene.swift */; };
 		41B059201FA0B338003759B8 /* rin_mixdown.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 41B0591F1FA0B338003759B8 /* rin_mixdown.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		417A8CDC1FA1CEED006B640A /* GameScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		417DAE801F9D9FC70023A1A0 /* FlappyBird.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlappyBird.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		417DAE831F9D9FC70023A1A0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		417DAE851F9D9FC70023A1A0 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -26,7 +27,6 @@
 		417DAE8D1F9D9FC70023A1A0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		417DAE8F1F9D9FC70023A1A0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		417DAE961F9DA09A0023A1A0 /* SpriteKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SpriteKit.framework; path = System/Library/Frameworks/SpriteKit.framework; sourceTree = SDKROOT; };
-		417DAE981F9DA77F0023A1A0 /* GameScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		41B0591F1FA0B338003759B8 /* rin_mixdown.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = rin_mixdown.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -64,12 +64,12 @@
 			children = (
 				417DAE831F9D9FC70023A1A0 /* AppDelegate.swift */,
 				41B0591F1FA0B338003759B8 /* rin_mixdown.mp3 */,
+				417A8CDC1FA1CEED006B640A /* GameScene.swift */,
 				417DAE851F9D9FC70023A1A0 /* ViewController.swift */,
 				417DAE871F9D9FC70023A1A0 /* Main.storyboard */,
 				417DAE8A1F9D9FC70023A1A0 /* Assets.xcassets */,
 				417DAE8C1F9D9FC70023A1A0 /* LaunchScreen.storyboard */,
 				417DAE8F1F9D9FC70023A1A0 /* Info.plist */,
-				417DAE981F9DA77F0023A1A0 /* GameScene.swift */,
 			);
 			path = FlappyBird;
 			sourceTree = "<group>";
@@ -155,8 +155,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				417A8CDD1FA1CEED006B640A /* GameScene.swift in Sources */,
 				417DAE861F9D9FC70023A1A0 /* ViewController.swift in Sources */,
-				417DAE991F9DA77F0023A1A0 /* GameScene.swift in Sources */,
 				417DAE841F9D9FC70023A1A0 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

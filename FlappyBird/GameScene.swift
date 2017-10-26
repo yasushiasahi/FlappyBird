@@ -28,7 +28,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 	
 	// タイマー
 	var lifeTimer:Timer!
-	let timerInterval: Double = 2
+	let timerInterval: Double = 2.5
 	
 	
 	// SKView上にシーンが表示されたときに呼ばれるメソッド
